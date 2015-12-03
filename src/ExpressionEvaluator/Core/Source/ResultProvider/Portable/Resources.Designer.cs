@@ -40,7 +40,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
+                    // When cloned into the MC++ EE, the namespace of the resource must be changed to match the directory structure in the MCppEE enlistment.
+                    // When building the Roslyn dll directly, the original namespace should be used.
+#if MCPPEE
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MCppEE.temp.RoslynResultProvider.Portable.Resources", typeof(Resources).GetTypeInfo().Assembly);
+#else
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.ExpressionEvaluator.Resources", typeof(Resources).GetTypeInfo().Assembly);
+#endif
                     resourceMan = temp;
                 }
                 return resourceMan;
