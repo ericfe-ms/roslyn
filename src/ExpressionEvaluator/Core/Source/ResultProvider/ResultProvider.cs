@@ -866,6 +866,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        // Returns true if the pointer that exists under the covers for the given ByRef type should be exposed to the user.
+        // This is true for interior_ptr values in MC++, which behave like actual pointers in the source language,
+        // but are represented as ByRef's in the managed metadata.
+        protected virtual bool ShouldByRefTypeBeTreatedAsPointer(Type type, DkmClrCustomTypeInfo customTypeInfo)
+        {
+            return false;
+        }
+
         internal Expansion GetTypeExpansion(
             DkmInspectionContext inspectionContext,
             TypeAndCustomInfo declaredTypeAndInfo,
@@ -880,13 +888,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
+            bool isByrefTreatedAsPointer = false;
 
             if (declaredType.IsByRef)
             {
-                // This shouldn't be possible, but if we do get here, bail now to prevent
-                // the code in MemberExpansion.CreateExpansion() from crashing.
-                Debug.Assert(false, "GetTypeExpansion: ByRef type passed in");
-                return null;
+                isByrefTreatedAsPointer = ShouldByRefTypeBeTreatedAsPointer(declaredType, declaredTypeAndInfo.Info);
+
+                if (!isByrefTreatedAsPointer)
+                {
+                    // This shouldn't be possible, but if we do get here, bail now to prevent
+                    // the code in MemberExpansion.CreateExpansion() from crashing.
+                    Debug.Assert(false, "GetTypeExpansion: ByRef type passed in");
+                    return null;
+                }
             }
 
             var runtimeType = value.Type.GetLmrType();
@@ -929,7 +943,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return null;
             }
 
-            if (declaredType.IsPointer)
+            if (declaredType.IsPointer || isByrefTreatedAsPointer)
             {
                 // If this ever happens, the element type info is just .SkipOne().
                 Debug.Assert(!DynamicFlagsCustomTypeInfo.Create(declaredTypeAndInfo.Info).Any());
