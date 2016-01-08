@@ -764,8 +764,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 bool unused;
                 if (typeDeclaringMemberAndInfo.Type.IsInterface)
                 {
-                    var interfaceTypeName = this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused);
-                    name = string.Format("{0}.{1}", interfaceTypeName, name);
+                    name = this.Formatter.GetQualifiedMemberName(typeDeclaringMemberAndInfo, name);
                 }
                 else
                 {

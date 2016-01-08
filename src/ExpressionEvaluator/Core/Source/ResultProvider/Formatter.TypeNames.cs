@@ -29,6 +29,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return pooled.ToStringAndFree();
         }
 
+        // Returns a qualified member name of a given for display purposes.  In C#, this would look like "a.b".  In MC++,
+        // it would look like "a::b".
+        internal virtual string GetQualifiedMemberName(TypeAndCustomInfo typeAndInfo, string memberName)
+        {
+            bool unused;
+            var typeName = GetTypeName(typeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused);
+            return string.Format("{0}.{1}", typeName, memberName);
+        }
+
         /// <summary>
         /// Append the qualified name (i.e. including containing types and namespaces) of a named,
         /// pointer, or array type to <paramref name="builder"/>.
