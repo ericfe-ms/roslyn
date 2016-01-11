@@ -368,6 +368,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmInspectionContext inspectionContext,
             string name,
             string fullName,
+            ReadOnlyCollection<string> formatSpecifiers,
             ref Type declaredType,
             ref DkmClrCustomTypeInfo declaredTypeCustomInfo,
             ref DkmClrValue value,
@@ -381,6 +382,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private EvalResultDataItem InvokeResultCreationHook(
             DkmInspectionContext inspectionContext,
             string name,
+            ReadOnlyCollection<string> formatSpecifiers,
             ref TypeAndCustomInfo declaredTypeAndInfo,
             ref DkmClrValue value,
             string fullName,
@@ -394,6 +396,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 inspectionContext,
                 name,
                 fullName,
+                formatSpecifiers,
                 ref declaredType,
                 ref customTypeInfo,
                 ref value,
@@ -433,18 +436,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmEvaluationResultFlags flags,
             DkmEvaluationFlags evalFlags)
         {
-            // Under managed C++, give the managed C++ EE, which overrides ResultCreationHook(), a chance
-            // to modify the value to display and/or create its own evaluation result to override
-            // all of our logic.
-            EvalResultDataItem hookResult = InvokeResultCreationHook(inspectionContext, name, ref declaredTypeAndInfo, ref value, fullName, ref category, ref flags);
-            if(hookResult != null)
-            {
-                return hookResult;
-            }
-
             if ((evalFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, "raw");
+            }
+
+            // Under managed C++, give the managed C++ EE, which overrides ResultCreationHook(), a chance
+            // to modify the value to display and/or create its own evaluation result to override
+            // all of our logic.
+            EvalResultDataItem hookResult = InvokeResultCreationHook(inspectionContext, name, formatSpecifiers, ref declaredTypeAndInfo, ref value, fullName, ref category, ref flags);
+            if(hookResult != null)
+            {
+                return hookResult;
             }
 
             Expansion expansion;
